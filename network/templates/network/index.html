@@ -1,0 +1,83 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block body %}
+
+    <h1 style="margin: 20px;">All Posts</h1>
+
+    {% if user.is_authenticated %}
+        <div class="new-post">
+            <h2>New Post</h2>
+            <form action="{% url 'newPost' %}" method="post" id="post-form">
+                {% csrf_token %}
+                <textarea name="content-body" id="post-content" rows="4" cols="100" required></textarea>
+                <br>
+                <input type="submit" value="Post" class="btn btn-primary"/>
+            </form>
+        </div>
+    {% endif %}
+
+    <div class="all-posts">
+        {% for post in posts_of_the_page %}
+            <div class="row post">
+                <h5 class="username"><a href="{% url 'profile' post.user.id %}">@{{ post.user }}</a></h5>
+                <h6 class="post-content post-content-{{ post.id }}">{{ post.content }}</h6>
+                <p class="date">{{ post.date }}</p>
+                {% if user.is_authenticated %}
+                    <p>Likes: <span id="like-count-{{ post.id }}">{{ post.total_likes }}</span></p>
+                    <button class="like-btn btn btn-primary" style="width: 100px;" data-id="{{ post.id }}">
+                    {% if user in post.likes.all %}
+                        Unlike
+                    {% else %}
+                        Like
+                    {% endif %}
+                    </button>
+                    <!--Previous comments display-->
+                    <div class="comments-section">
+                        <h2>Comments:</h2>
+                        
+                            <div>
+                                <p class="comment-user">:</p><p class="comment-content"></p>
+                                <p class="comment-date"><small></small></p>
+                            </div>
+                        
+                    </div>
+                    <!--Comments section-->
+                    <div style="padding-left: 20px;" class="card-text border-success comment-form">
+                        <textarea class="comment-content" name="comment-content" placeholder="add a comment..." rows="2" cols="80" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" class="comment-button" data-id="{{ post.id }}">Comment</button>
+
+                    <br>
+                    <!--Edit section-->
+                    {% if user == post.user %}
+                        <div class="card-text border-success edit-controls" style="display: none;">
+                            <textarea class="edit-content">{{ post.content }}</textarea>
+                            <button class="btn btn-primary save-edit" data-id="{{ post.id }}">Save edit</button>
+                            <button class="btn btn-primary return-post">Return</button>
+                        </div>
+                        <button class="btn btn-primary edit-post" style="width: 100px;" data-id="{{ post.id }}">Edit Post</button>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+        
+        <nav aria-label="Page navigation example">
+            <ul class="pagination d-flex justify-content-center">
+                {% if posts_of_the_page.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ posts_of_the_page.previous_page_number }}">Previous</a></li>
+                {% endif %}
+                {% if posts_of_the_page.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ posts_of_the_page.next_page_number }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'network/script.js' %}?v=1.1"></script>
+
+
+{% endblock %}
